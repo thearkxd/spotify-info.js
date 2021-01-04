@@ -1,3 +1,3 @@
 module.exports = {
-  Spotify: require("./spotify-api")
+  Spotify: require("./spotify-api"),
 };

@@ -1,16 +1,24 @@
 {
   "name": "spotify-info.js",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Get Spotify track/playlist/album/artist infos with their names or their ID's",
   "main": "main.js",
-  "keywords": ["Spotify","spotify","spotify-info","spotify-api"],
+  "keywords": [
+    "Spotify",
+    "spotify",
+    "spotify-info",
+    "spotify-api"
+  ],
   "author": "",
   "license": "MIT",
-  "repository": "https://github.com/AlperTheArk/spotify-info",
+  "repository": "https://github.com/thearkjs/spotify-info.js",
   "dependencies": {
     "http": "0.0.1-security",
     "js-base64": "^3.6.0",
+    "opusscript": "0.0.7",
     "request": "^2.88.2",
-    "request-promise": "^4.2.6"
+    "request-promise": "^4.2.6",
+    "simple-youtube-api": "^5.2.1",
+    "ytdl-core-discord": "^1.2.5"
   }
 }

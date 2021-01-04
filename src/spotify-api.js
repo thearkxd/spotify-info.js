@@ -1,6 +1,8 @@
 "use strict";
 const request = require("request-promise");
 const { Base64 } = require("js-base64");
+const ytdl = require("ytdl-core-discord");
+const YouTube = require("simple-youtube-api");
 
 module.exports = class Spotify {
   constructor(details = {}) {
@@ -44,7 +46,8 @@ module.exports = class Spotify {
         json: true,
       };
     });
-    return await request.get(APIOptions).then((x) => x.tracks.items);
+    let data = await request.get(APIOptions);
+    return data.tracks.items;
   }
 
   async searchPlaylist(playListName, options = {}) {
@@ -68,7 +71,8 @@ module.exports = class Spotify {
         json: true,
       };
     });
-    return await request.get(APIOptions).then((x) => x.playlists.items);
+    let data = await request.get(APIOptions);
+    return data.playlists.items;
   }
 
   async searchAlbum(albumName, options = {}) {
@@ -92,7 +96,8 @@ module.exports = class Spotify {
         json: true,
       };
     });
-    return await request.get(APIOptions).then((x) => x.albums.items);
+    let data = await request.get(APIOptions);
+    return data.albums.items;
   }
 
   async searchArtist(artistName, options = {}) {
@@ -116,7 +121,8 @@ module.exports = class Spotify {
         json: true,
       };
     });
-    return await request.get(APIOptions).then((x) => x.artists.items);
+    let data = await request.get(APIOptions);
+    return data.artists.items;
   }
 
   async getTrack(trackID) {
@@ -198,4 +204,94 @@ module.exports = class Spotify {
     });
     return await request.get(APIOptions);
   }
+
+  async getTrackByURL(trackURL) {
+    let regex = /(?<=https:\/\/open\.spotify\.com\/track\/)([a-zA-Z0-9]{15,})/g;
+    let trackID = trackURL.match(regex)[0];
+    return await this.getTrack(trackID);
+  }
+
+  async getAlbumByURL(albumURL) {
+    let regex = /(?<=https:\/\/open\.spotify\.com\/album\/)([a-zA-Z0-9]{15,})/g;
+    let albumID = albumURL.match(regex)[0];
+    return await this.getAlbum(albumID);
+  }
+
+  async getPlaylistByURL(playlistURL) {
+    let regex = /(?<=https:\/\/open\.spotify\.com\/playlist\/)([a-zA-Z0-9]{15,})/g;
+    let playListID = playlistURL.match(regex)[0];
+    return await this.getPlaylist(playListID);
+  }
+
+  async getUserByURL(userURL) {
+    let regex = /(?<=https:\/\/open\.spotify\.com\/user\/)([a-zA-Z0-9]{15,})/g;
+    let userID = userURL.match(regex)[0];
+    return await this.getUser(userID);
+  }
+
+  async playTrack(trackURL, options = {}) {
+    this.apiKey = options.apiKey;
+    this.connection = options.connection;
+    if (!this.apiKey) return console.error("Please provide an API Key!");
+    if (!this.connection)
+      return console.error("Please provide a voice connection!");
+    const youtube = new YouTube(this.apiKey);
+    const track = await this.getTrackByURL(trackURL);
+    const ytSearch = await youtube.searchVideos(
+      track.name + " " + track.artists[0].name,
+      1
+    );
+    const ytTrackURL = ytSearch[0].url;
+    return await this.connection.play(await ytdl(ytTrackURL), { type: "opus" });
+  }
+
+  async playList(playlistURL, options = {}) {
+    let queue = [];
+    this.apiKey = options.apiKey;
+    this.connection = options.connection;
+    if (!this.apiKey) return console.error("Please provide an API Key!");
+    if (!this.connection)
+      return console.error("Please provide a voice connection!");
+    const youtube = new YouTube(this.apiKey);
+    const playlist = await this.getPlaylistByURL(playlistURL);
+    for (var i = 0; i < playlist.tracks.items.length; i++) {
+      const track = playlist.tracks.items[i];
+      let ytSearch = await youtube.searchVideos(
+        track.track.name + " " + track.track.artists[0].name,
+        1
+      );
+      queue.push(ytSearch[0].url);
+    }
+    return await play(queue, options.connection);
+  }
+
+  async playAlbum(albumURL, options = {}) {
+    let queue = [];
+    this.apiKey = options.apiKey;
+    this.connection = options.connection;
+    if (!this.apiKey) return console.error("Please provide an API Key!");
+    if (!this.connection)
+      return console.error("Please provide a voice connection!");
+    const youtube = new YouTube(this.apiKey);
+    const album = await this.getAlbumByURL(albumURL);
+    for (var i = 0; i < album.tracks.items.length; i++) {
+      const track = album.tracks.items[i];
+      let ytSearch = await youtube.searchVideos(
+        track.name + " " + track.artists[0].name,
+        1
+      );
+      queue.push(ytSearch[0].url);
+    }
+    return await play(queue, options.connection);
+  }
+};
+
+const play = async (queue, connection) => {
+  connection
+    .play(await ytdl(queue[0]), { type: "opus" })
+    .on("finish", async () => {
+      if (queue.length === 0) return;
+      queue.shift();
+      play(queue, connection);
+    });
 };
