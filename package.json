@@ -1,6 +1,6 @@
 {
   "name": "spotify-info.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Get Spotify track/playlist/album/artist infos with their names or their ID's",
   "main": "main.js",
   "keywords": [

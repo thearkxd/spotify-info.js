@@ -116,7 +116,10 @@ connection
 
 ## Changelog
 
-### 1.0.2
+### 1.0.4
+* Fixed a bug 🐞.
+
+### 1.0.3
 * Added playTrack, playList and playAlbum for discord.js v12 users.
 
 ### 1.0.2
